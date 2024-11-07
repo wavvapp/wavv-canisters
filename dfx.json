@@ -1,0 +1,17 @@
+{
+    "canisters": {
+        "wavv": {
+            "type": "azle",
+            "main": "src/index.ts",
+            "candid_gen": "http",
+            "declarations": {
+                "output": "test/dfx_generated/wavv",
+                "node_compatibility": true
+            },
+            "custom": {
+                "experimental": true
+            }
+        }
+    },
+    "output_env_file": ".env"
+}
