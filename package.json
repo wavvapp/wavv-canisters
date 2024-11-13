@@ -4,6 +4,7 @@
         "test": "jest"
     },
     "dependencies": {
+        "@nfid/identitykit": "^1.0.1",
         "azle": "^0.24.1",
         "cors": "^2.8.5",
         "express": "^4.21.1"
