@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <GoogleOAuthProvider clientId={process.env.VITE_GOOGLE_CLIENT_ID || ""}>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <AuthContext.Provider
         value={{
           user,
