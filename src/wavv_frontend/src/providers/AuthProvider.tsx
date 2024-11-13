@@ -1,23 +1,30 @@
-import { useState, useEffect, ReactNode, useCallback } from "react";
-import { jwtDecode, JwtPayload } from "jwt-decode";
+import { useState, useEffect, ReactNode, useCallback, useMemo } from "react";
+import { jwtDecode } from "jwt-decode";
 import { CredentialResponse, GoogleOAuthProvider } from "@react-oauth/google";
-import { AuthContext } from "@/hooks/useAuth";
+import useICPAuth from "@/hooks/useICPAuth";
+import { AuthContext, JwtPayload } from "@/context/AuthContext";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<JwtPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const { principal, setPrincipal, loginWithInternetIdentity } = useICPAuth();
+
+  const isSucessfulyConnected = useMemo(
+    () => !!isAuthenticated && !!principal,
+    [isAuthenticated, principal]
+  );
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       const decodedUser = jwtDecode(token) || null;
-      setUser(decodedUser);
+      setUser(decodedUser as unknown as JwtPayload);
     }
+    
     setLoading(false);
   }, []);
-
-
 
   const checkAuthStatus = useCallback(() => {
     try {
@@ -41,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      setUser(decodedToken);
+      setUser(decodedToken as unknown as JwtPayload);
       setIsAuthenticated(true);
     } catch (error) {
       console.error("Auth check error:", error);
@@ -52,16 +59,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-
   useEffect(() => {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
-  const login = (credentialResponse: CredentialResponse) => {
+  const login = async (credentialResponse: CredentialResponse) => {
     const token = credentialResponse.credential || "";
     const decodedUser = jwtDecode(token);
-    setUser(decodedUser);
+    setUser(decodedUser as unknown as JwtPayload);
     localStorage.setItem("token", token);
+
+    // Connect with ICP II
+    await loginWithInternetIdentity();
   };
 
   const logout = () => {
@@ -79,6 +88,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           logout,
           isAuthenticated,
           checkAuthStatus,
+          principal,
+          setPrincipal,
+          isSucessfulyConnected,
         }}
       >
         {!loading && children}
