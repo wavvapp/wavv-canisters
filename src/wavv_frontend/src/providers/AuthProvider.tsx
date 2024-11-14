@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { CredentialResponse, GoogleOAuthProvider } from "@react-oauth/google";
 import useICPAuth from "@/hooks/useICPAuth";
 import { AuthContext, JwtPayload } from "@/context/AuthContext";
-import {canisterApiService} from "@/service";
+import {canisterApiService, wavvApiService} from "@/service";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<JwtPayload | null>(null);
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     updateAuthStates();
   }, [updateAuthStates]);
 
-  const registerWavvAccount = useCallback(async () => {
+  const registerWavvAccount = useCallback(async (token: string) => {
     /**
      * User registration on canister of keeping track points
     */
@@ -73,6 +73,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setPoints(response.data.points);
     localStorage.setItem("points", response.data.points || 0);
 
+    /**
+     * User registration for wavvapp access
+    */
+    const { data } = await wavvApiService.post("/auth/google-signin", {
+      token,
+      platform: "web" ,
+    })
+    localStorage.setItem("accessToken", data.access_token);
 
   }, [principal, user?.email])
 
@@ -87,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await loginWithInternetIdentity();
 
       // Register account to wavv if not exist
-      await registerWavvAccount()
+      await registerWavvAccount(token)
 
       // Update auth status
       updateAuthStates();
