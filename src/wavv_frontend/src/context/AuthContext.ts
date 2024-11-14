@@ -1,7 +1,8 @@
+import { WavvUser } from "@/types/wavv-user";
 import { CredentialResponse } from "@react-oauth/google";
 import { createContext } from "react";
 
-export interface JwtPayload  {
+export type JwtPayload  = {
   iss: string
   azp: string,
   aud: string,
@@ -18,6 +19,7 @@ export interface JwtPayload  {
   jti: string
 }
 
+
 interface AuthContextType {
   user: JwtPayload | null ;
   loading: boolean;
@@ -28,6 +30,7 @@ interface AuthContextType {
   principal: string | null;
   setPrincipal: (principal: string | null) => void;
   isSucessfulyConnected: boolean;
+  wavvUser: WavvUser | null
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(

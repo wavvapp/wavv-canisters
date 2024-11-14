@@ -5,15 +5,12 @@
       "main": "src/wavv_backend/index.ts",
       "candid_gen": "http",
       "declarations": {
-        "output": "test/dfx_generated/wavv",
+        "output": "test/dfx_generated/wavv_backend",
         "node_compatibility": true
       },
       "custom": {
         "experimental": true
       }
-    },
-    "wavv_frontend": {
-      
     }
   },
   "output_env_file": ".env"

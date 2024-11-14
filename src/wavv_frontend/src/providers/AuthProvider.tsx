@@ -3,9 +3,12 @@ import { jwtDecode } from "jwt-decode";
 import { CredentialResponse, GoogleOAuthProvider } from "@react-oauth/google";
 import useICPAuth from "@/hooks/useICPAuth";
 import { AuthContext, JwtPayload } from "@/context/AuthContext";
+import api from "@/service";
+import { WavvUser } from "@/types/wavv-user";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<JwtPayload | null>(null);
+  const [wavvUser, setWavvUser] = useState<WavvUser | null>(null)
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -22,7 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const decodedUser = jwtDecode(token) || null;
       setUser(decodedUser as unknown as JwtPayload);
     }
-    
+
     setLoading(false);
   }, []);
 
@@ -71,6 +74,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Connect with ICP II
     await loginWithInternetIdentity();
+
+    // Create new user
+    const wavvUser = await api.post("/users", { principal, email: user?.email  });
+    setWavvUser(wavvUser as unknown as WavvUser)
   };
 
   const logout = () => {
@@ -91,6 +98,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           principal,
           setPrincipal,
           isSucessfulyConnected,
+          wavvUser
         }}
       >
         {!loading && children}

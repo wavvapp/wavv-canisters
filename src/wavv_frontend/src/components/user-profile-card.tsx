@@ -6,7 +6,7 @@ import { Trophy } from "lucide-react"
 import useAuth from "@/hooks/useAuth"
 
 export default function UserProfile() {
-  const { user } = useAuth();
+  const { user, wavvUser } = useAuth();
   return (
     <Card className="w-full max-w-md mx-auto overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500 text-white">
       <CardContent className="p-6">
@@ -16,7 +16,7 @@ export default function UserProfile() {
             <p className="text-sm opacity-75">{user?.email }</p>
           </div>
           <Avatar className="h-16 w-16 border-2 border-white">
-            <AvatarImage src={user?.picture} alt={user.name} />
+            <AvatarImage src={user?.picture} alt={user?.name} />
             { !user?.picture &&  <AvatarFallback className="bg-white text-purple-500 text-xl font-bold">A</AvatarFallback>}
           </Avatar>
         </div>
@@ -26,7 +26,7 @@ export default function UserProfile() {
             <span className="text-lg font-semibold">Total Points</span>
             <Badge variant="secondary" className="bg-white text-purple-500 font-bold">
               <Trophy className="w-4 h-4 mr-1" />
-              1,234
+              {wavvUser?.point}
             </Badge>
           </div>
           <Progress value={62} className="h-2 bg-white/30" />
