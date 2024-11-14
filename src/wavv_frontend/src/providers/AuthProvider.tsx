@@ -1,35 +1,31 @@
-import { useState, useEffect, ReactNode, useCallback, useMemo } from "react";
+import { useState, useEffect, ReactNode, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { CredentialResponse, GoogleOAuthProvider } from "@react-oauth/google";
 import useICPAuth from "@/hooks/useICPAuth";
 import { AuthContext, JwtPayload } from "@/context/AuthContext";
-import api from "@/service";
-import { WavvUser } from "@/types/wavv-user";
+import {canisterApiService} from "@/service";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<JwtPayload | null>(null);
-  const [wavvUser, setWavvUser] = useState<WavvUser | null>(null)
+  const [points, setPoints] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const { principal, setPrincipal, loginWithInternetIdentity } = useICPAuth();
 
-  const isSucessfulyConnected = useMemo(
-    () => !!isAuthenticated && !!principal,
-    [isAuthenticated, principal]
-  );
-
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const points = Number(localStorage.getItem("points"));
     if (token) {
       const decodedUser = jwtDecode(token) || null;
       setUser(decodedUser as unknown as JwtPayload);
+      setPoints(points);
     }
 
     setLoading(false);
   }, []);
 
-  const checkAuthStatus = useCallback(() => {
+  const updateAuthStates = useCallback(() => {
     try {
       const token = localStorage.getItem("token");
 
@@ -63,26 +59,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+    updateAuthStates();
+  }, [updateAuthStates]);
 
-  const login = async (credentialResponse: CredentialResponse) => {
-    const token = credentialResponse.credential || "";
-    const decodedUser = jwtDecode(token);
-    setUser(decodedUser as unknown as JwtPayload);
-    localStorage.setItem("token", token);
+  const registerWavvAccount = useCallback(async () => {
+    /**
+     * User registration on canister of keeping track points
+    */
+    const response = await canisterApiService.post("/users", {
+      principal,
+      email: user?.email,
+    });
+    setPoints(response.data.points);
+    localStorage.setItem("points", response.data.points || 0);
 
-    // Connect with ICP II
-    await loginWithInternetIdentity();
 
-    // Create new user
-    const wavvUser = await api.post("/users", { principal, email: user?.email  });
-    setWavvUser(wavvUser as unknown as WavvUser)
-  };
+  }, [principal, user?.email])
+
+  const login = useCallback(
+    async (credentialResponse: CredentialResponse) => {
+      const token = credentialResponse.credential || "";
+      const decodedUser = jwtDecode(token);
+      setUser(decodedUser as unknown as JwtPayload);
+      localStorage.setItem("token", token);
+
+      // Connect with ICP II
+      await loginWithInternetIdentity();
+
+      // Register account to wavv if not exist
+      await registerWavvAccount()
+
+      // Update auth status
+      updateAuthStates();
+    },
+    [loginWithInternetIdentity, registerWavvAccount, updateAuthStates]
+  );
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("points");
     localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
+
+    // Update auth status
+    updateAuthStates();
   };
 
   return (
@@ -94,11 +114,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           login,
           logout,
           isAuthenticated,
-          checkAuthStatus,
+          updateAuthStates,
           principal,
           setPrincipal,
-          isSucessfulyConnected,
-          wavvUser
+          points,
         }}
       >
         {!loading && children}

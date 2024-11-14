@@ -1,4 +1,3 @@
-import { WavvUser } from "@/types/wavv-user";
 import { CredentialResponse } from "@react-oauth/google";
 import { createContext } from "react";
 
@@ -26,11 +25,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (credentialResponse: CredentialResponse) => void;
   logout: () => void;
-  checkAuthStatus: () => void;
+  updateAuthStates: () => void;
   principal: string | null;
   setPrincipal: (principal: string | null) => void;
-  isSucessfulyConnected: boolean;
-  wavvUser: WavvUser | null
+  points: number
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
