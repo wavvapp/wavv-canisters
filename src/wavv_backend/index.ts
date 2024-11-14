@@ -132,7 +132,7 @@ app.post("/users/:userId/decrease", (req: Request, res: Response) => {
 app.post("/v2/users", (req: Request, res: Response) => {
   if (!req.body.email && !req.body.principal) {
     res.status(400).json({
-      message: "Email and principal, is required.",
+      message: "Email and principal, are required.",
     });
     return;
   }
@@ -151,12 +151,11 @@ app.post("/v2/users", (req: Request, res: Response) => {
     userPoints.insert(principal, newUser);
   }
 
-
   res.status(201).json(user);
 });
 
-app.get("/v2/users/:userId", (req: Request, res: Response) => {
-  const principal = req.params.principal;
+app.get("/v2/users/:principal", (req: Request, res: Response) => {
+  const { principal } = req.params;
   const user = userPoints.get(principal);
 
   if (!user) {
