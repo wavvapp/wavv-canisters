@@ -9,7 +9,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center">
       <div
         className={`p-8 rounded-lg w-[600px] ${
-          !(isAuthenticated) && " shadow-md"
+          !(isAuthenticated) && "shadow-md bg-gradient-to-br from-purple-500 to-pink-500 text-white"
         }`}
       >
         <h1 className="text-2xl font-bold mb-6 text-center">
