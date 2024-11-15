@@ -2,15 +2,27 @@
   "canisters": {
     "wavv": {
       "type": "azle",
-      "main": "src/index.ts",
+      "main": "src/wavv_backend/index.ts",
       "candid_gen": "http",
       "declarations": {
-        "output": "test/dfx_generated/wavv",
+        "output": "test/dfx_generated/wavv_backend",
         "node_compatibility": true
       },
       "custom": {
         "experimental": true
       }
+    },
+    "wavv_frontend": {
+      "dependencies": ["wavv"],
+      "frontend": {
+        "entrypoint": "src/dist/index.html"
+      },
+      "source": [
+        "src/wavv_frontend/dist"
+      ],
+      "type": "assets",
+      "gzip": true,
+      "env": ["VITE_POINTS_CANISTER_BASE_URL", "VITE_GOOGLE_CLIENT_ID", "CANISTER_ID_WAVV_FRONTEND"]
     }
   },
   "networks": {
