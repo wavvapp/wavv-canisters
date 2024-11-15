@@ -1,11 +1,11 @@
 {
   "canisters": {
-    "wavv_backend": {
+    "wavv": {
       "type": "azle",
-      "main": "src/wavv_backend/index.ts",
+      "main": "src/index.ts",
       "candid_gen": "http",
       "declarations": {
-        "output": "test/dfx_generated/wavv_backend",
+        "output": "test/dfx_generated/wavv",
         "node_compatibility": true
       },
       "custom": {
@@ -13,5 +13,12 @@
       }
     }
   },
+  "networks": {
+    "mainnet": {
+      "providers": ["https://icp0.io"],
+      "type": "persistent"
+    }
+  },
+
   "output_env_file": ".env"
 }
