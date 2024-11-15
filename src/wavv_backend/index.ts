@@ -154,6 +154,7 @@ app.post("/v2/users", (req: Request, res: Response) => {
   res.status(201).json(user);
 });
 
+
 app.get("/v2/users/:principal", (req: Request, res: Response) => {
   const { principal } = req.params;
   const user = userPoints.get(principal);
@@ -166,6 +167,7 @@ app.get("/v2/users/:principal", (req: Request, res: Response) => {
 
   res.status(200).json(user);
 });
+
 
 app.post("/v2/users/:principal/increase", (req: Request, res: Response) => {
   const { principal } = req.params;
@@ -195,6 +197,8 @@ app.post("/v2/users/:principal/increase", (req: Request, res: Response) => {
   res.status(200).json(updatedUser);
 });
 
+
+
 app.post("/v2/users/:principal/decrease", (req: Request, res: Response) => {
   const { principal } = req.params;
   const payload = req.body as PointsPayload;
@@ -222,5 +226,7 @@ app.post("/v2/users/:principal/decrease", (req: Request, res: Response) => {
   userPoints.insert(principal, updatedUser);
   res.status(200).json(updatedUser);
 });
+
+
 
 app.listen();

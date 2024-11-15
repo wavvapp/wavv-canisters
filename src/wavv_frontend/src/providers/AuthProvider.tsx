@@ -2,11 +2,11 @@ import { useState, useEffect, ReactNode, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { CredentialResponse, GoogleOAuthProvider } from "@react-oauth/google";
 import useICPAuth from "@/hooks/useICPAuth";
-import { AuthContext, JwtPayload } from "@/context/AuthContext";
-import {canisterApiService, wavvApiService} from "@/service";
+import { AuthContext, JwtUserPayload } from "@/context/AuthContext";
+import { wavvApiService } from "@/service";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<JwtPayload | null>(null);
+  const [user, setUser] = useState<JwtUserPayload | null>(null);
   const [points, setPoints] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const points = Number(localStorage.getItem("points"));
     if (token) {
       const decodedUser = jwtDecode(token) || null;
-      setUser(decodedUser as unknown as JwtPayload);
+      setUser(decodedUser as unknown as JwtUserPayload);
       setPoints(points);
     }
 
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      setUser(decodedToken as unknown as JwtPayload);
+      setUser(decodedToken as unknown as JwtUserPayload);
       setIsAuthenticated(true);
     } catch (error) {
       console.error("Auth check error:", error);
@@ -62,45 +62,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     updateAuthStates();
   }, [updateAuthStates]);
 
-  const registerWavvAccount = useCallback(async (token: string) => {
+  const authenticateUserOnWavvApp = useCallback( async (token: string) => {
     /**
-     * User registration on canister of keeping track points
-    */
-    const response = await canisterApiService.post("/users", {
-      principal,
-      email: user?.email,
-    });
-    setPoints(response.data.points);
-    localStorage.setItem("points", response.data.points || 0);
-
-    /**
-     * User registration for wavvapp access
-    */
+     * User registration for wavvapp be
+     */
     const { data } = await wavvApiService.post("/auth/google-signin", {
       token,
-      platform: "web" ,
-    })
+      platform: "web",
+      principal
+    });
     localStorage.setItem("accessToken", data.access_token);
-
-  }, [principal, user?.email])
+    
+  }, [principal]);
 
   const login = useCallback(
     async (credentialResponse: CredentialResponse) => {
       const token = credentialResponse.credential || "";
       const decodedUser = jwtDecode(token);
-      setUser(decodedUser as unknown as JwtPayload);
+      setUser(decodedUser as unknown as JwtUserPayload);
       localStorage.setItem("token", token);
 
       // Connect with ICP II
-      await loginWithInternetIdentity();
+      await loginWithInternetIdentity(decodedUser as unknown as JwtUserPayload);
 
-      // Register account to wavv if not exist
-      await registerWavvAccount(token)
-
+      // Athenticate user on wavvapp
+      await authenticateUserOnWavvApp(token)
+      
       // Update auth status
       updateAuthStates();
     },
-    [loginWithInternetIdentity, registerWavvAccount, updateAuthStates]
+    [authenticateUserOnWavvApp, loginWithInternetIdentity, updateAuthStates]
   );
 
   const logout = () => {
