@@ -14,7 +14,7 @@ export default function Login() {
       >
         <h1 className="text-2xl font-bold mb-6 text-center">
           {!(isAuthenticated) &&
-            "Login with Google to connect with icp"}
+            "Login with Google to connect with internet identity."}
         </h1>
         <div className="flex items-center justify-center">
           {!(isAuthenticated) && (

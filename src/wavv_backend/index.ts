@@ -149,9 +149,10 @@ app.post("/v2/users", (req: Request, res: Response) => {
     };
   
     userPoints.insert(principal, newUser);
+    res.status(201).json(newUser);
   }
 
-  res.status(201).json(user);
+  res.status(200).json(user);
 });
 
 

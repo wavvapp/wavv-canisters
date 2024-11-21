@@ -7,19 +7,22 @@ import { wavvApiService } from "@/service";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<JwtUserPayload | null>(null);
-  const [points, setPoints] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const { principal, setPrincipal, loginWithInternetIdentity } = useICPAuth();
+  const {
+    principal,
+    setPrincipal,
+    loginWithInternetIdentity,
+    logout: logoutIcpLogout,
+    points,
+  } = useICPAuth();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const points = Number(localStorage.getItem("points"));
     if (token) {
       const decodedUser = jwtDecode(token) || null;
       setUser(decodedUser as unknown as JwtUserPayload);
-      setPoints(points);
     }
 
     setLoading(false);
@@ -62,18 +65,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     updateAuthStates();
   }, [updateAuthStates]);
 
-  const authenticateUserOnWavvApp = useCallback( async (token: string) => {
-    /**
-     * User registration for wavvapp be
-     */
-    const { data } = await wavvApiService.post("/auth/google-signin", {
-      token,
-      platform: "web",
-      principal
-    });
-    localStorage.setItem("accessToken", data.access_token);
-    
-  }, [principal]);
+  const authenticateUserOnWavvApp = useCallback(
+    async (token: string) => {
+      /**
+       * User registration for wavvapp be
+       */
+      const { data } = await wavvApiService.post("/auth/google-signin", {
+        token,
+        platform: "web",
+        principal,
+      });
+      localStorage.setItem("accessToken", data.access_token);
+
+    },
+    [ principal]
+  );
 
   const login = useCallback(
     async (credentialResponse: CredentialResponse) => {
@@ -86,11 +92,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await loginWithInternetIdentity(decodedUser as unknown as JwtUserPayload);
 
       // Athenticate user on wavvapp
-      await authenticateUserOnWavvApp(token)
-      
+      await authenticateUserOnWavvApp(token);
+
       // Update auth status
       updateAuthStates();
     },
+
     [authenticateUserOnWavvApp, loginWithInternetIdentity, updateAuthStates]
   );
 
@@ -99,6 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("points");
     localStorage.removeItem("token");
     localStorage.removeItem("accessToken");
+    logoutIcpLogout();
 
     // Update auth status
     updateAuthStates();

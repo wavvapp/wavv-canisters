@@ -19,6 +19,12 @@ function useICPAuth(): ICPAuthReturn {
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [points, setPoints] = useState(0);
 
+
+  const getPoints = useCallback(async (principal: string) => {
+    const response = await canisterApiService.get(`users/${principal}`);
+    setPoints(response.data?.points || 0);
+  }, []);
+
   // Initialize the AuthClient and check if the user is authenticated
   useLayoutEffect(() => {
     async function initializeAuthClient() {
@@ -30,11 +36,12 @@ function useICPAuth(): ICPAuthReturn {
       if (authStatus) {
         const identity = client.getIdentity();
         setPrincipal(identity.getPrincipal().toText());
+        getPoints(identity.getPrincipal().toText())
       }
       setIsLoading(false);
     }
     initializeAuthClient();
-  }, [setPrincipal]);
+  }, [getPoints, setPrincipal]);
 
   /**
    * User registration on canister of keeping track points
@@ -42,15 +49,15 @@ function useICPAuth(): ICPAuthReturn {
    */
   const registerUserIdentityOnWavvCanister = useCallback(
     async (principal: string, user: JwtUserPayload) => {
-      const response = await canisterApiService.post("/users", {
+      await canisterApiService.post("/users", {
         principal,
         email: user?.email,
       });
-      setPoints(response.data.points);
-      localStorage.setItem("points", response.data.points || 0);
     },
     []
   );
+
+ 
 
   const loginWithInternetIdentity = useCallback(
     async (user: JwtUserPayload) => {
@@ -65,12 +72,14 @@ function useICPAuth(): ICPAuthReturn {
               identity.getPrincipal().toText(),
               user
             );
+
+            await getPoints(identity.getPrincipal().toText())
           },
           windowOpenerFeatures: popupCenter(),
         });
       }
     },
-    [authClient, registerUserIdentityOnWavvCanister]
+    [authClient, getPoints, registerUserIdentityOnWavvCanister]
   );
 
   const logout = useCallback(async () => {
