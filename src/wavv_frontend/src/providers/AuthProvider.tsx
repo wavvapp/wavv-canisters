@@ -3,7 +3,6 @@ import { jwtDecode } from "jwt-decode";
 import { CredentialResponse, GoogleOAuthProvider } from "@react-oauth/google";
 import useICPAuth from "@/hooks/useICPAuth";
 import { AuthContext, JwtUserPayload } from "@/context/AuthContext";
-import { wavvApiService } from "@/service";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<JwtUserPayload | null>(null);
@@ -65,40 +64,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     updateAuthStates();
   }, [updateAuthStates]);
 
-  const authenticateUserOnWavvApp = useCallback(
-    async (token: string) => {
-      /**
-       * User registration for wavvapp be
-       */
-      const { data } = await wavvApiService.post("/auth/google-signin", {
-        token,
-        platform: "web",
-        principal,
-      });
-      localStorage.setItem("accessToken", data.access_token);
-
-    },
-    [ principal]
-  );
 
   const login = useCallback(
     async (credentialResponse: CredentialResponse) => {
-      const token = credentialResponse.credential || "";
-      const decodedUser = jwtDecode(token);
+      const googleAuthToken = credentialResponse.credential || "";
+      const decodedUser = jwtDecode(googleAuthToken);
       setUser(decodedUser as unknown as JwtUserPayload);
-      localStorage.setItem("token", token);
+      localStorage.setItem("token", googleAuthToken);
 
       // Connect with ICP II
-      await loginWithInternetIdentity(decodedUser as unknown as JwtUserPayload);
-
-      // Athenticate user on wavvapp
-      await authenticateUserOnWavvApp(token);
+      await loginWithInternetIdentity(decodedUser as unknown as JwtUserPayload, googleAuthToken );
 
       // Update auth status
       updateAuthStates();
     },
 
-    [authenticateUserOnWavvApp, loginWithInternetIdentity, updateAuthStates]
+    [loginWithInternetIdentity, updateAuthStates]
   );
 
   const logout = () => {

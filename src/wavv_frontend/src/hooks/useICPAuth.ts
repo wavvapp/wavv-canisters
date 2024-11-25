@@ -1,11 +1,11 @@
 import { JwtUserPayload } from "@/context/AuthContext";
 import { popupCenter } from "@/lib/utils";
-import { canisterApiService } from "@/service";
+import { canisterApiService, wavvApiService } from "@/service";
 import { AuthClient } from "@dfinity/auth-client";
 import { useCallback, useLayoutEffect, useState } from "react";
 
 export type ICPAuthReturn = {
-  loginWithInternetIdentity: (user: JwtUserPayload) => Promise<void>;
+  loginWithInternetIdentity: (user: JwtUserPayload, googleAuthToken: string) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
   principal: string | null;
@@ -57,10 +57,26 @@ function useICPAuth(): ICPAuthReturn {
     []
   );
 
+  const authenticateUserOnWavvApp = useCallback(
+    async (token: string, principal: string) => {
+      /**
+       * User registration for wavvapp be
+       */
+      const { data } = await wavvApiService.post("/auth/google-signin", {
+        token,
+        platform: "web",
+        principal,
+      });
+      localStorage.setItem("accessToken", data.access_token);
+
+    },
+    []
+  );
+
  
 
   const loginWithInternetIdentity = useCallback(
-    async (user: JwtUserPayload) => {
+    async (user: JwtUserPayload, googleAuthToken: string) => {
       if (authClient) {
         await authClient.login({
           identityProvider: "https://identity.internetcomputer.org",
@@ -72,6 +88,8 @@ function useICPAuth(): ICPAuthReturn {
               identity.getPrincipal().toText(),
               user
             );
+            
+            await authenticateUserOnWavvApp(googleAuthToken, identity.getPrincipal().toText())
 
             await getPoints(identity.getPrincipal().toText())
           },
@@ -79,7 +97,7 @@ function useICPAuth(): ICPAuthReturn {
         });
       }
     },
-    [authClient, getPoints, registerUserIdentityOnWavvCanister]
+    [authClient, authenticateUserOnWavvApp, getPoints, registerUserIdentityOnWavvCanister]
   );
 
   const logout = useCallback(async () => {
