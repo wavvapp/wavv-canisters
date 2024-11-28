@@ -1,9 +1,24 @@
 import useAuth from "@/hooks/useAuth";
 import { GoogleLogin } from "@react-oauth/google";
 import UserProfile from "@/components/user-profile-card";
+import { useEffect, useState } from "react";
 
 export default function Login() {
   const { login, isAuthenticated } = useAuth();
+  const [ popupsAreAllowed, setPopupsAreAllowed ] = useState(false)
+
+  useEffect(() => {
+    const popupTestWindow = window.open('', '_blank', 'width=1,height=1');
+
+    if (!popupTestWindow || popupTestWindow.closed) {
+      alert('Please allow popups for this site to continue authentication');
+      return;
+    }
+
+    setPopupsAreAllowed(true)
+
+    popupTestWindow.close();
+  }, [])
 
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -17,7 +32,7 @@ export default function Login() {
             "Login with Google to connect with internet identity."}
         </h1>
         <div className="flex items-center justify-center">
-          {!(isAuthenticated) && (
+          {!(isAuthenticated) && (popupsAreAllowed) && (
             <GoogleLogin onSuccess={login} useOneTap />
           )}
 
