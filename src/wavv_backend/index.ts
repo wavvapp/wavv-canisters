@@ -229,5 +229,101 @@ app.post("/v2/users/:principal/decrease", (req: Request, res: Response) => {
 });
 
 
+// Version three
+app.post("/v3/users", (req: Request, res: Response) => {
+  if (!req.body.email) {
+    res.status(400).json({
+      message: "Email is required.",
+    });
+    return;
+  }
+
+  const email = req.body.email;
+  const user = userPoints.get(email);
+
+  if (!user) {
+    const newUser = {
+      email,
+      points: 0,
+    };
+  
+    userPoints.insert(email, newUser);
+    res.status(201).json(newUser);
+  }
+
+  res.status(200).json(user);
+});
+
+
+app.get("/v3/users/:email", (req: Request, res: Response) => {
+  const { email } = req.params;
+  const user = userPoints.get(email);
+
+  if (!user) {
+    res.status(404).json({
+      message: `User not found`,
+    });
+  }
+
+  res.status(200).json(user);
+});
+
+
+app.post("/v3/users/:email/increase", (req: Request, res: Response) => {
+  const { email } = req.params;
+  const payload = req.body as PointsPayload;
+  const user = userPoints.get(email);
+
+  if (!user) {
+    res.status(404).json({
+      message: `User not found`,
+    });
+    return;
+  }
+
+  if (typeof payload.points !== "number" || payload.points <= 0) {
+    res.status(400).json({
+      message: "Points must be a positive number",
+    });
+    return;
+  }
+
+  const updatedUser = {
+    ...user,
+    points: user.points + payload.points,
+  };
+
+  userPoints.insert(email, updatedUser);
+  res.status(200).json(updatedUser);
+});
+
+app.post("/v3/users/:email/decrease", (req: Request, res: Response) => {
+  const { email } = req.params;
+  const payload = req.body as PointsPayload;
+  const user = userPoints.get(email);
+
+  if (!user) {
+    res.status(404).json({
+      message: `User not found`,
+    });
+    return;
+  }
+
+  if (typeof payload.points !== "number" || payload.points <= 0) {
+    res.status(400).json({
+      message: "Points must be a positive number",
+    });
+    return;
+  }
+
+  const updatedUser = {
+    ...user,
+    points: user.points - payload.points,
+  };
+
+  userPoints.insert(email, updatedUser);
+  res.status(200).json(updatedUser);
+});
+
 
 app.listen();

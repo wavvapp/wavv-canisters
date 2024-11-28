@@ -5,12 +5,16 @@ import { AuthClient } from "@dfinity/auth-client";
 import { useCallback, useLayoutEffect, useState } from "react";
 
 export type ICPAuthReturn = {
-  loginWithInternetIdentity: (user: JwtUserPayload, googleAuthToken: string) => Promise<void>;
+  loginWithInternetIdentity: (
+    user: JwtUserPayload,
+    googleAuthToken: string
+  ) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
   principal: string | null;
   setPrincipal: (principal: string | null) => void;
   points: number;
+  getPoints: ({ email }: { email: string }) => void;
 };
 
 function useICPAuth(): ICPAuthReturn {
@@ -19,9 +23,8 @@ function useICPAuth(): ICPAuthReturn {
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [points, setPoints] = useState(0);
 
-
-  const getPoints = useCallback(async (principal: string) => {
-    const response = await canisterApiService.get(`users/${principal}`);
+  const getPoints = useCallback(async ({ email }: { email: string }) => {
+    const response = await canisterApiService.get(`users/${email}`);
     setPoints(response.data?.points || 0);
   }, []);
 
@@ -36,12 +39,11 @@ function useICPAuth(): ICPAuthReturn {
       if (authStatus) {
         const identity = client.getIdentity();
         setPrincipal(identity.getPrincipal().toText());
-        getPoints(identity.getPrincipal().toText())
       }
       setIsLoading(false);
     }
     initializeAuthClient();
-  }, [getPoints, setPrincipal]);
+  }, [setPrincipal]);
 
   /**
    * User registration on canister of keeping track points
@@ -68,12 +70,9 @@ function useICPAuth(): ICPAuthReturn {
         principal,
       });
       localStorage.setItem("accessToken", data.access_token);
-
     },
     []
   );
-
- 
 
   const loginWithInternetIdentity = useCallback(
     async (user: JwtUserPayload, googleAuthToken: string) => {
@@ -88,26 +87,34 @@ function useICPAuth(): ICPAuthReturn {
               identity.getPrincipal().toText(),
               user
             );
-            
-            await authenticateUserOnWavvApp(googleAuthToken, identity.getPrincipal().toText())
 
-            await getPoints(identity.getPrincipal().toText())
+            await authenticateUserOnWavvApp(
+              googleAuthToken,
+              identity.getPrincipal().toText()
+            );
+
+            await getPoints({ email: user.email });
           },
           windowOpenerFeatures: popupCenter(),
         });
       }
     },
-    [authClient, authenticateUserOnWavvApp, getPoints, registerUserIdentityOnWavvCanister]
+    [
+      authClient,
+      authenticateUserOnWavvApp,
+      getPoints,
+      registerUserIdentityOnWavvCanister,
+    ]
   );
 
   const logout = useCallback(async () => {
     if (authClient) {
       await authClient.logout();
       setPrincipal(null);
-      /* 
-      * Creating a new instance of authClient to 
-      * prevent unexpected behaviour during subsequent login
-      */
+      /*
+       * Creating a new instance of authClient to
+       * prevent unexpected behaviour during subsequent login
+       */
       await AuthClient.create();
     }
   }, [authClient, setPrincipal]);
@@ -119,6 +126,7 @@ function useICPAuth(): ICPAuthReturn {
     principal,
     setPrincipal,
     points,
+    getPoints,
   };
 }
 

@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loginWithInternetIdentity,
     logout: logoutIcpLogout,
     points,
+    getPoints,
   } = useICPAuth();
 
   useEffect(() => {
@@ -22,10 +23,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       const decodedUser = jwtDecode(token) || null;
       setUser(decodedUser as unknown as JwtUserPayload);
+      if (user?.email) {
+        getPoints({ email: user.email });
+      }
     }
 
     setLoading(false);
-  }, []);
+  }, [getPoints, user?.email]);
 
   const updateAuthStates = useCallback(() => {
     try {
@@ -64,7 +68,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     updateAuthStates();
   }, [updateAuthStates]);
 
-
   const login = useCallback(
     async (credentialResponse: CredentialResponse) => {
       const googleAuthToken = credentialResponse.credential || "";
@@ -73,7 +76,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("token", googleAuthToken);
 
       // Connect with ICP II
-      await loginWithInternetIdentity(decodedUser as unknown as JwtUserPayload, googleAuthToken );
+      await loginWithInternetIdentity(
+        decodedUser as unknown as JwtUserPayload,
+        googleAuthToken
+      );
 
       // Update auth status
       updateAuthStates();
