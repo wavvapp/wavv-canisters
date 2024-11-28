@@ -23,13 +23,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       const decodedUser = jwtDecode(token) || null;
       setUser(decodedUser as unknown as JwtUserPayload);
-      if (user?.email) {
-        getPoints({ email: user.email });
+      if (user?.sub) {
+        getPoints({ id: user.sub });
       }
     }
 
     setLoading(false);
-  }, [getPoints, user?.email]);
+  }, [getPoints, user?.sub]);
 
   const updateAuthStates = useCallback(() => {
     try {

@@ -14,7 +14,7 @@ export type ICPAuthReturn = {
   principal: string | null;
   setPrincipal: (principal: string | null) => void;
   points: number;
-  getPoints: ({ email }: { email: string }) => void;
+  getPoints: ({ id }: { id: string }) => void;
 };
 
 function useICPAuth(): ICPAuthReturn {
@@ -23,8 +23,8 @@ function useICPAuth(): ICPAuthReturn {
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [points, setPoints] = useState(0);
 
-  const getPoints = useCallback(async ({ email }: { email: string }) => {
-    const response = await canisterApiService.get(`users/${email}`);
+  const getPoints = useCallback(async ({ id }: { id: string }) => {
+    const response = await canisterApiService.get(`users/${id}`);
     setPoints(response.data?.points || 0);
   }, []);
 
@@ -53,7 +53,7 @@ function useICPAuth(): ICPAuthReturn {
     async (principal: string, user: JwtUserPayload) => {
       await canisterApiService.post("/users", {
         principal,
-        email: user?.email,
+        id: user?.sub,
       });
     },
     []
@@ -93,7 +93,7 @@ function useICPAuth(): ICPAuthReturn {
               identity.getPrincipal().toText()
             );
 
-            await getPoints({ email: user.email });
+            await getPoints({ id: user.sub });
           },
           windowOpenerFeatures: popupCenter(),
         });

@@ -231,23 +231,22 @@ app.post("/v2/users/:principal/decrease", (req: Request, res: Response) => {
 
 // Version three
 app.post("/v3/users", (req: Request, res: Response) => {
-  if (!req.body.email) {
+  if (!req.body.id) {
     res.status(400).json({
       message: "Email is required.",
     });
     return;
   }
 
-  const email = req.body.email;
-  const user = userPoints.get(email);
+  const id = req.body.id;
+  const user = userPoints.get(id);
 
   if (!user) {
     const newUser = {
-      email,
       points: 0,
     };
   
-    userPoints.insert(email, newUser);
+    userPoints.insert(id, newUser);
     res.status(201).json(newUser);
   }
 
@@ -255,9 +254,9 @@ app.post("/v3/users", (req: Request, res: Response) => {
 });
 
 
-app.get("/v3/users/:email", (req: Request, res: Response) => {
-  const { email } = req.params;
-  const user = userPoints.get(email);
+app.get("/v3/users/:id", (req: Request, res: Response) => {
+  const { id } = req.params;
+  const user = userPoints.get(id);
 
   if (!user) {
     res.status(404).json({
@@ -269,10 +268,10 @@ app.get("/v3/users/:email", (req: Request, res: Response) => {
 });
 
 
-app.post("/v3/users/:email/increase", (req: Request, res: Response) => {
-  const { email } = req.params;
+app.post("/v3/users/:id/increase", (req: Request, res: Response) => {
+  const { id } = req.params;
   const payload = req.body as PointsPayload;
-  const user = userPoints.get(email);
+  const user = userPoints.get(id);
 
   if (!user) {
     res.status(404).json({
@@ -293,14 +292,14 @@ app.post("/v3/users/:email/increase", (req: Request, res: Response) => {
     points: user.points + payload.points,
   };
 
-  userPoints.insert(email, updatedUser);
+  userPoints.insert(id, updatedUser);
   res.status(200).json(updatedUser);
 });
 
-app.post("/v3/users/:email/decrease", (req: Request, res: Response) => {
-  const { email } = req.params;
+app.post("/v3/users/:id/decrease", (req: Request, res: Response) => {
+  const { id } = req.params;
   const payload = req.body as PointsPayload;
-  const user = userPoints.get(email);
+  const user = userPoints.get(id);
 
   if (!user) {
     res.status(404).json({
@@ -321,7 +320,7 @@ app.post("/v3/users/:email/decrease", (req: Request, res: Response) => {
     points: user.points - payload.points,
   };
 
-  userPoints.insert(email, updatedUser);
+  userPoints.insert(id, updatedUser);
   res.status(200).json(updatedUser);
 });
 
