@@ -9,6 +9,7 @@ export default function Login() {
   const { login, isAuthenticated, error } = useAuth();
   const [popupsAreAllowed, setPopupsAreAllowed] = useState(false)
   const { toast } = useToast()
+
   useEffect(() => {
     const popupTestWindow = window.open('', '_blank', 'width=1,height=1');
 
@@ -43,7 +44,7 @@ export default function Login() {
             "Login with Google to connect with internet identity."}
         </h1>
         <div className="flex items-center justify-center">
-          {!(isAuthenticated) && (popupsAreAllowed) && (
+          {!(isAuthenticated) && (
             <GoogleLogin onSuccess={login} useOneTap />
           )}
 
