@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout: logoutIcpLogout,
     points,
     getPoints,
+    error
   } = useICPAuth();
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const decodedToken = jwtDecode(token);
       const currentTime = Date.now() / 1000;
 
-      if (decodedToken.exp && decodedToken.exp < currentTime) {
+      if (error || decodedToken.exp && decodedToken.exp < currentTime) {
         localStorage.removeItem("token");
         setIsAuthenticated(false);
         setUser(null);
@@ -112,6 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           principal,
           setPrincipal,
           points,
+          error
         }}
       >
         {!loading && children}

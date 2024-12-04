@@ -15,6 +15,7 @@ export type ICPAuthReturn = {
   setPrincipal: (principal: string | null) => void;
   points: number;
   getPoints: ({ id }: { id: string }) => void;
+  error: string | null
 };
 
 function useICPAuth(): ICPAuthReturn {
@@ -22,6 +23,7 @@ function useICPAuth(): ICPAuthReturn {
   const [principal, setPrincipal] = useState<string | null>(null);
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [points, setPoints] = useState(0);
+  const [error, setError] = useState<string | null>(null)
 
   const getPoints = useCallback(async ({ id }: { id: string }) => {
     const response = await canisterApiService.get(`users/${id}`);
@@ -64,11 +66,17 @@ function useICPAuth(): ICPAuthReturn {
       /**
        * User registration for wavvapp be
        */
-      const { data } = await wavvApiService.post("/auth/google-signin", {
+      if (error) setError(null)
+      const { data, status } = await wavvApiService.post("/auth/google-signin", {
         token,
         platform: "web",
         principal,
       });
+
+      if (status === 202) {
+        setError("Email account not found")
+        return
+      }
       localStorage.setItem("accessToken", data.access_token);
     },
     []
@@ -127,6 +135,7 @@ function useICPAuth(): ICPAuthReturn {
     setPrincipal,
     points,
     getPoints,
+    error
   };
 }
 
