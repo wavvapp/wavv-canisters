@@ -11,14 +11,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null)
 
   const {
-    principal,
-    setPrincipal,
     loginWithInternetIdentity,
     logout: logoutIcpLogout,
     points,
     getPoints,
     userExists,
-    registerPrincipalOnWavvBackend
   } = useICPAuth();
 
   useEffect(() => {
@@ -92,13 +89,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         decodedUser as unknown as JwtUserPayload,
         googleAuthToken
       );
-      if (!decodedUser.sub || !principal) return
-
-      await registerPrincipalOnWavvBackend(googleAuthToken, principal)
+      if (!decodedUser.sub) return
       await getPoints({ id: decodedUser.sub });
       updateAuthStates()
     },
-    [userExists, loginWithInternetIdentity, principal, registerPrincipalOnWavvBackend, getPoints, updateAuthStates]
+    [userExists, loginWithInternetIdentity, getPoints, updateAuthStates]
   );
 
   const logout = () => {
@@ -106,6 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("points");
     localStorage.removeItem("token");
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("principal");
     logoutIcpLogout();
 
     // Update auth status
@@ -122,8 +118,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           logout,
           isAuthenticated,
           updateAuthStates,
-          principal,
-          setPrincipal,
           points,
           error
         }}

@@ -26,8 +26,6 @@ interface AuthContextType {
   login: (credentialResponse: CredentialResponse) => void;
   logout: () => void;
   updateAuthStates: () => void;
-  principal: string | null;
-  setPrincipal: (principal: string | null) => void;
   points: number
   error: string | null
 }

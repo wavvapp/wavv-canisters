@@ -11,17 +11,13 @@ export type ICPAuthReturn = {
   ) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
-  principal: string | null;
-  setPrincipal: (principal: string | null) => void;
   points: number;
   getPoints: ({ id }: { id: string }) => void;
   userExists: (token: string) => Promise<boolean>
-  registerPrincipalOnWavvBackend: (token: string, princial: string) => Promise<void>
 };
 
 function useICPAuth(): ICPAuthReturn {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [principal, setPrincipal] = useState<string | null>(null);
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [points, setPoints] = useState(0);
 
@@ -40,12 +36,12 @@ function useICPAuth(): ICPAuthReturn {
       const authStatus = await client.isAuthenticated();
       if (authStatus) {
         const identity = client.getIdentity();
-        setPrincipal(identity.getPrincipal().toText());
+        localStorage.setItem("principal", identity.getPrincipal().toText())
       }
       setIsLoading(false);
     }
     initializeAuthClient();
-  }, [setPrincipal]);
+  }, []);
 
   /**
    * User registration on canister of keeping track points
@@ -85,48 +81,46 @@ function useICPAuth(): ICPAuthReturn {
   );
 
   const loginWithInternetIdentity = useCallback(
-    async (user: JwtUserPayload) => {
+    async (user: JwtUserPayload, googleAuthToken: string) => {
       if (authClient) {
         await authClient.login({
           identityProvider: "https://identity.internetcomputer.org",
           onSuccess: async () => {
             const identity = authClient.getIdentity();
-            setPrincipal(identity.getPrincipal().toText());
+            localStorage.setItem("principal", identity.getPrincipal().toText())
 
             await registerUserIdentityOnWavvCanister(
               identity.getPrincipal().toText(),
               user
             );
+            await registerPrincipalOnWavvBackend(googleAuthToken, identity.getPrincipal().toText())
           },
           windowOpenerFeatures: popupCenter(),
         });
       }
     },
-    [authClient, registerUserIdentityOnWavvCanister]
+    [authClient, registerPrincipalOnWavvBackend, registerUserIdentityOnWavvCanister]
   );
 
   const logout = useCallback(async () => {
     if (authClient) {
       await authClient.logout();
-      setPrincipal(null);
+      localStorage.removeItem("principal")
       /*
        * Creating a new instance of authClient to
        * prevent unexpected behaviour during subsequent login
        */
       await AuthClient.create();
     }
-  }, [authClient, setPrincipal]);
+  }, [authClient]);
 
   return {
     loginWithInternetIdentity,
     logout,
     isLoading,
-    principal,
-    setPrincipal,
     points,
     getPoints,
     userExists,
-    registerPrincipalOnWavvBackend,
   };
 }
 
