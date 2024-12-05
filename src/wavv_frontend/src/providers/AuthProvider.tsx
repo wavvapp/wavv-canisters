@@ -8,6 +8,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<JwtUserPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [error, setError] = useState<string | null>(null)
+
 
   const {
     principal,
@@ -16,7 +18,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout: logoutIcpLogout,
     points,
     getPoints,
-    error
+    userExists,
+    registerPrincipalOnWavvBackend
   } = useICPAuth();
 
   useEffect(() => {
@@ -40,17 +43,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(false);
         setUser(null);
         setLoading(false);
+        setError(null)
         return;
       }
 
       const decodedToken = jwtDecode(token);
       const currentTime = Date.now() / 1000;
 
-      if (error || decodedToken.exp && decodedToken.exp < currentTime) {
+      if (decodedToken.exp && decodedToken.exp < currentTime) {
         localStorage.removeItem("token");
         setIsAuthenticated(false);
         setUser(null);
         setLoading(false);
+        setError(null)
         return;
       }
 
@@ -74,19 +79,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const googleAuthToken = credentialResponse.credential || "";
       const decodedUser = jwtDecode(googleAuthToken);
       setUser(decodedUser as unknown as JwtUserPayload);
+
+      // Check with wavv_backend if the email exist
+      const isWavvUser = await userExists(googleAuthToken);
+      if (!isWavvUser) {
+        setError("Email account not found")
+        return
+      }
+
       localStorage.setItem("token", googleAuthToken);
 
-      // Connect with ICP II
       await loginWithInternetIdentity(
         decodedUser as unknown as JwtUserPayload,
         googleAuthToken
       );
+      if (!decodedUser.sub || !principal) return
 
-      // Update auth status
-      updateAuthStates();
+      await registerPrincipalOnWavvBackend(googleAuthToken, principal)
+      await getPoints({ id: decodedUser.sub });
+      updateAuthStates()
     },
-
-    [loginWithInternetIdentity, updateAuthStates]
+    [userExists, loginWithInternetIdentity, principal, registerPrincipalOnWavvBackend, getPoints, updateAuthStates]
   );
 
   const logout = () => {
