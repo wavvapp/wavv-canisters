@@ -10,7 +10,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null)
 
-
   const {
     principal,
     setPrincipal,

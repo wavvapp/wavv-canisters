@@ -1,7 +1,7 @@
 import { CredentialResponse } from "@react-oauth/google";
 import { createContext } from "react";
 
-export type JwtUserPayload = {
+export type JwtUserPayload  = {
   iss: string
   azp: string,
   aud: string,
@@ -20,7 +20,7 @@ export type JwtUserPayload = {
 
 
 interface AuthContextType {
-  user: JwtUserPayload | null;
+  user: JwtUserPayload | null ;
   loading: boolean;
   isAuthenticated: boolean;
   login: (credentialResponse: CredentialResponse) => void;
@@ -28,7 +28,7 @@ interface AuthContextType {
   updateAuthStates: () => void;
   principal: string | null;
   setPrincipal: (principal: string | null) => void;
-  points: number,
+  points: number
   error: string | null
 }
 

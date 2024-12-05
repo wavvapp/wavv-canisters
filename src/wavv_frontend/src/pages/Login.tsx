@@ -2,7 +2,7 @@ import useAuth from "@/hooks/useAuth";
 import { GoogleLogin } from "@react-oauth/google";
 import UserProfile from "@/components/user-profile-card";
 import { useEffect, useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/hooks/use-toast";
 
 
 export default function Login() {
@@ -51,5 +51,5 @@ export default function Login() {
         </div>
       </div>
     </div>
-  )
+  );
 }
