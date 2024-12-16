@@ -1,4 +1,4 @@
-# Azle Hello World
+# Wavvapp canister
 
 -   [Installation](#installation)
 -   [Deployment](#deployment)
