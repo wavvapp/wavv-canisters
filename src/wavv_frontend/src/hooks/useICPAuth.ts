@@ -1,5 +1,4 @@
 import { JwtUserPayload } from "@/context/AuthContext";
-import { popupCenter } from "@/lib/utils";
 import { canisterApiService, wavvApiService } from "@/service";
 import { AuthClient } from "@dfinity/auth-client";
 import { useCallback, useLayoutEffect, useState } from "react";
@@ -95,7 +94,6 @@ function useICPAuth(): ICPAuthReturn {
             );
             await registerPrincipalOnWavvBackend(googleAuthToken, identity.getPrincipal().toText())
           },
-          windowOpenerFeatures: popupCenter(),
         });
       }
     },

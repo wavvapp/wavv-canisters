@@ -38,7 +38,7 @@ export default function UserProfile() {
             </Badge>
           </div>
           <Progress value={0} className="h-2 bg-white/30" />
-          <p className="text-sm mt-2 text-right text-white/75">0% to next level</p>
+          <p className="text-sm mt-2 text-right text-white/75">0%</p>
         </div>
 
         <Button
