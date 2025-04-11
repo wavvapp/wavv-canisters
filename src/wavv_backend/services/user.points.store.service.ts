@@ -138,4 +138,25 @@ export default class UserPointsStore {
     this.userPoints.insert(id, updatedUser);
     return { user: updatedUser, statusCode: 200 };
   }
+
+
+
+  /**
+   * Deletes a user
+   * @param id User identifier
+   * @returns Status code and message
+   */
+  deleteUser(id: string): { statusCode: number; message?: string, user?: User } {
+    const user = this.userPoints.get(id);
+
+    if (!user) {
+      return { 
+        statusCode: 404, 
+        message: "User not found" 
+      };
+    }
+
+    this.userPoints.remove(id);
+    return { statusCode: 200, user };
+  }
 }

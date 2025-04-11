@@ -30,14 +30,13 @@ app.post("/v3/users", (req: Request, res: Response) => {
     const newUser = {
       points: 0,
     };
-  
+
     userPoints.insert(id, newUser);
     res.status(201).json(newUser);
   }
 
   res.status(200).json(user);
 });
-
 
 app.get("/v3/users/:id", (req: Request, res: Response) => {
   const { id } = req.params;
@@ -51,7 +50,6 @@ app.get("/v3/users/:id", (req: Request, res: Response) => {
 
   res.status(200).json(user);
 });
-
 
 app.post("/v3/users/:id/increase", (req: Request, res: Response) => {
   const { id } = req.params;
@@ -109,11 +107,29 @@ app.post("/v3/users/:id/decrease", (req: Request, res: Response) => {
   res.status(200).json(updatedUser);
 });
 
+app.delete("/v3/users/:id", (req: Request, res: Response) => {
+  const { id } = req.params;
+  const payload = req.body as User;
+  const user = userPoints.get(id);
+
+  if (!user) {
+    res.status(404).json({
+      message: `User not found`,
+    });
+    return;
+  }
+
+  userPoints.remove(id);
+  res.status(200).json({
+    message: `User ${id} deleted`,
+  });
+});
+
+
 
 
 
 const userPointsStore = new UserPointsStore();
-
 
 app.post("/v4/users", (req: Request, res: Response) => {
   if (!req.body.id) {
@@ -129,7 +145,6 @@ app.post("/v4/users", (req: Request, res: Response) => {
   res.status(statusCode).json(user);
 });
 
-
 app.get("/v4/users/:id", (req: Request, res: Response) => {
   const { id } = req.params;
   const { user, statusCode, message } = userPointsStore.getUserById(id);
@@ -142,12 +157,13 @@ app.get("/v4/users/:id", (req: Request, res: Response) => {
   res.status(statusCode).json(user);
 });
 
-
-
 app.post("/v4/users/:id/increase", (req: Request, res: Response) => {
   const { id } = req.params;
   const pointsToAdd = req.body.points;
-  const { user, statusCode, message } = userPointsStore.increaseUserPoints(id, pointsToAdd);
+  const { user, statusCode, message } = userPointsStore.increaseUserPoints(
+    id,
+    pointsToAdd
+  );
 
   if (!user) {
     res.status(statusCode).json({ message });
@@ -156,12 +172,14 @@ app.post("/v4/users/:id/increase", (req: Request, res: Response) => {
 
   res.status(statusCode).json(user);
 });
-
 
 app.post("/v4/users/:id/decrease", (req: Request, res: Response) => {
   const { id } = req.params;
   const pointsToSubtract = req.body.points;
-  const { user, statusCode, message } = userPointsStore.decreaseUserPoints(id, pointsToSubtract);
+  const { user, statusCode, message } = userPointsStore.decreaseUserPoints(
+    id,
+    pointsToSubtract
+  );
 
   if (!user) {
     res.status(statusCode).json({ message });
@@ -171,5 +189,17 @@ app.post("/v4/users/:id/decrease", (req: Request, res: Response) => {
   res.status(statusCode).json(user);
 });
 
+
+app.delete("/v4/users/:id", (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { user, statusCode, message } = userPointsStore.deleteUser(id);
+
+  if (!user) {
+    res.status(statusCode).json({ message });
+    return;
+  }
+
+  res.status(statusCode).json(user);
+});
 
 app.listen();
